@@ -1,0 +1,9 @@
+{
+  "name": "Company File Seva",
+  "description": "Premium business registration and compliance services mobile app.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

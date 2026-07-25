@@ -1,0 +1,137 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - uid: string (required) - Firebase Auth ID
+    //   - displayName: string (optional) - Full name
+    //   - email: string (required, email format) - Email address
+    //   - photoURL: string (optional, uri format) - Profile picture URL
+    //   - phoneNumber: string (optional) - Contact number
+    //   - location: string (optional) - User location
+    //   - role: string (required, enum: ['user', 'admin']) - User role
+    //   - createdAt: string (required, date-time) - Account creation timestamp
+    //
+    // Collection: orders
+    // Document ID: {orderId}
+    // Fields:
+    //   - orderId: string (required) - Unique order ID
+    //   - userId: string (required) - ID of the user who placed the order
+    //   - serviceIds: list (required) - List of service IDs in the order
+    //   - totalAmount: number (required) - Total amount paid
+    //   - status: string (required, enum: ['pending', 'processing', 'completed', 'cancelled']) - Order status
+    //   - paymentId: string (optional) - Payment gateway reference
+    //   - createdAt: string (required, date-time) - Order placement timestamp
+    //
+    // Collection: carts
+    // Document ID: {userId}
+    // Fields:
+    //   - userId: string (required) - ID of the cart owner
+    //   - items: list (required) - List of objects with {id: string, quantity: integer}
+    //   - fullItems: list (required) - List of full service objects
+    //   - updatedAt: string (required, date-time) - Last update timestamp
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "companyfileseva@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+        email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string &&
+        dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'email', 'role', 'createdAt']) &&
+             hasOnlyAllowedFields(['uid', 'displayName', 'email', 'photoURL', 'phoneNumber', 'location', 'role', 'createdAt']) &&
+             data.uid == request.auth.uid &&
+             isValidEmail(data.email) &&
+             data.role in ['user', 'admin'] &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidOrder(data) {
+      return hasRequiredFields(['orderId', 'userId', 'serviceIds', 'totalAmount', 'status', 'createdAt']) &&
+             hasOnlyAllowedFields(['orderId', 'userId', 'serviceIds', 'totalAmount', 'status', 'paymentId', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.serviceIds is list &&
+             data.totalAmount is number &&
+             data.status in ['pending', 'processing', 'completed', 'cancelled'] &&
+             isValidDateString(data.createdAt);
+    }
+
+    function isValidCart(data) {
+      return hasRequiredFields(['userId', 'items', 'fullItems', 'updatedAt']) &&
+             hasOnlyAllowedFields(['userId', 'items', 'fullItems', 'updatedAt']) &&
+             data.userId == request.auth.uid &&
+             data.items is list &&
+             data.fullItems is list &&
+             isValidDateString(data.updatedAt);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == 'user' || isAdmin());
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidOrder(request.resource.data);
+      allow update: if isAdmin(); // Only admins can update order status
+    }
+
+    match /carts/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidCart(request.resource.data);
+      allow delete: if isOwner(userId);
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,66 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # capacitor.config.ts requires these or the config load throws.
+      # Google's public test AdMob IDs — replace with real ones when you have them.
+      ADMOB_APP_ID_ANDROID: "ca-app-pub-3940256099942544~3347511713"
+      ADMOB_APP_ID_IOS: "ca-app-pub-3940256099942544~1458002511"
+      # Frontend build-time env (baked into the bundle at build time)
+      VITE_API_BASE_URL: "https://fileseva.onrender.com"
+      VITE_GOOGLE_CLIENT_ID: "188380788015-uq6996380isg8vamj7lpq2uc62r55rpj.apps.googleusercontent.com"
+      VITE_META_PIXEL_ID: "000000000000000"
+      VITE_ADMOB_BANNER_ID: "ca-app-pub-3940256099942544/6300978111"
+      VITE_SUPPORT_WHATSAPP_NUMBER: "919876543210"
+      VITE_SUPPORT_PHONE_NUMBER: "919876543210"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install required Android SDK packages
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build web app
+        run: npm run build
+
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
