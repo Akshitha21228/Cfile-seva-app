@@ -11,6 +11,39 @@
 # users_collection = _db["users"]
 # carts_collection = _db["carts"]
 # orders_collection = _db["orders"]
+
+# from motor.motor_asyncio import AsyncIOMotorClient
+# from .config import settings
+# import logging
+
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+
+# # Try to connect to MongoDB, but don't fail if it doesn't work
+# try:
+#     _client = AsyncIOMotorClient(settings.mongodb_uri, serverSelectionTimeoutMS=5000)
+#     _db = _client["company_file_seva"]
+#     # Test the connection
+#     import asyncio
+#     asyncio.get_event_loop().run_until_complete(_client.admin.command('ping'))
+#     logger.info("✅ MongoDB connected successfully!")
+#     db_connected = True
+# except Exception as e:
+#     logger.warning(f"⚠️ MongoDB connection failed: {e}")
+#     logger.warning("⚠️ Running in demo mode - database features won't work")
+#     _db = None
+#     db_connected = False
+
+# # Always create these collections (they'll be None if no DB)
+# if db_connected:
+#     users_collection = _db["users"]
+#     carts_collection = _db["carts"]
+#     orders_collection = _db["orders"]
+# else:
+#     users_collection = None
+#     carts_collection = None
+#     orders_collection = None
+
 from motor.motor_asyncio import AsyncIOMotorClient
 from .config import settings
 import logging
@@ -18,17 +51,17 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Try to connect to MongoDB, but don't fail if it doesn't work
+# Attempt to connect to MongoDB (lazy connection – no upfront ping)
 try:
     _client = AsyncIOMotorClient(settings.mongodb_uri, serverSelectionTimeoutMS=5000)
-    _db = _client["company_file_seva"]
-    # Test the connection
-    import asyncio
-    asyncio.get_event_loop().run_until_complete(_client.admin.command('ping'))
-    logger.info("✅ MongoDB connected successfully!")
+    _db = _client["sample_mflix"]  # matches your .env URI
+
+    # We don't ping here to avoid event loop conflicts.
+    # The connection will be tested on the first actual operation.
+    logger.info("✅ MongoDB client created successfully.")
     db_connected = True
 except Exception as e:
-    logger.warning(f"⚠️ MongoDB connection failed: {e}")
+    logger.warning(f"⚠️ MongoDB client creation failed: {e}")
     logger.warning("⚠️ Running in demo mode - database features won't work")
     _db = None
     db_connected = False
