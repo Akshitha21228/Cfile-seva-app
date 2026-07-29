@@ -8,3 +8,6 @@ coverage/
 !.env.example
 firebase-applet-config.json
 .idea/
+
+.vercel
+.env*
