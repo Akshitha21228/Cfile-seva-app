@@ -388,10 +388,7 @@ export function Home() {
   return (
     <div className="space-y-8 px-4 pb-20">
       {/* Header */}
-      <div className="text-center py-2">
-        <h1 className="text-2xl font-bold text-gray-800">Online Legal India</h1>
-        <p className="text-sm text-gray-500">ODR - TM - Registrations & Compliance</p>
-      </div>
+     
 
       {/* ========== Registration & License Section ========== */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
