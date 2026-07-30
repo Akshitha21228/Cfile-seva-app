@@ -726,12 +726,289 @@
 //     </div>
 //   );
 // }
+
+// import { useParams, useNavigate } from 'react-router-dom';
+// import { useState, useEffect, useRef } from 'react';
+// import { SERVICES } from '../data/services';
+// import { 
+//   ArrowLeft, ShoppingCart, Zap, CheckCircle2, 
+//   FileText, Info, ShieldCheck, Shield
+// } from 'lucide-react';
+// import { motion, AnimatePresence } from 'motion/react';
+// import { useCart } from '../context/CartContext';
+// import { useToast } from '../context/ToastContext';
+// import { clsx } from 'clsx';
+// import { logEvent } from '../services/analytics';
+// import { AdBanner } from '../components/AdBanner';
+
+// export function ServiceDetail() {
+//   const { id } = useParams();
+//   const navigate = useNavigate();
+//   const { cart, addToCart } = useCart();
+//   const { showToast } = useToast();
+//   const [activeTab, setActiveTab] = useState<'details' | 'documents'>('details');
+//   const [showDisclaimer, setShowDisclaimer] = useState(true);
+//   const isActionInProgress = useRef(false);
+
+//   const service = SERVICES.find(s => s.id === id);
+
+//   // Get the quantity of this specific service in the cart
+//   const cartItem = cart.find(item => item.id === id);
+//   const quantityInCart = cartItem ? cartItem.quantity : 0;
+
+//   useEffect(() => {
+//     if (service) {
+//       logEvent('service_viewed', { service_id: service.id, service_title: service.title });
+//     }
+//   }, [service]);
+
+//   if (!service) {
+//     return (
+//       <div className="min-h-screen flex flex-col items-center justify-center p-8 space-y-4">
+//         <h2 className="text-2xl font-bold">Service Not Found</h2>
+//         <button onClick={() => navigate('/')} className="text-blue-400 font-bold">Go Home</button>
+//       </div>
+//     );
+//   }
+
+//   const handleAddToCart = () => {
+//     console.log('🛒 Add to Cart button clicked!');
+//     if (isActionInProgress.current) return;
+//     isActionInProgress.current = true;
+//     addToCart(service);
+//     showToast(`${service.title} added to cart`, 'success');
+//     logEvent('add_to_cart', { service_id: service.id, price: service.price });
+//     setTimeout(() => { isActionInProgress.current = false; }, 500);
+//   };
+
+//   const handleBuyNow = () => {
+//     if (isActionInProgress.current) return;
+//     isActionInProgress.current = true;
+//     addToCart(service);
+//     logEvent('begin_checkout', { service_id: service.id, price: service.price });
+//     navigate('/checkout');
+//     setTimeout(() => { isActionInProgress.current = false; }, 500);
+//   };
+
+//   const handleCloseDisclaimer = () => {
+//     setShowDisclaimer(false);
+//   };
+
+//   return (
+//     <div className="min-h-screen bg-[#050505] text-white pb-[calc(9rem+env(safe-area-inset-bottom))]">
+//       {/* ===== TEMPORARY DEBUG: Cart Count ===== */}
+//       <div className="p-4 bg-yellow-500/20 border-b border-yellow-500/30 text-center text-sm">
+//         🛒 Cart items: <span className="font-bold text-white">{cart.length}</span>
+//       </div>
+
+//       {/* ===== DISCLAIMER OVERLAY - WHITE BACKGROUND ===== */}
+//       <AnimatePresence>
+//         {showDisclaimer && (
+//           <motion.div
+//             initial={{ opacity: 0 }}
+//             animate={{ opacity: 1 }}
+//             exit={{ opacity: 0 }}
+//             className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
+//           >
+//             <motion.div
+//               initial={{ scale: 0.9, y: 20 }}
+//               animate={{ scale: 1, y: 0 }}
+//               exit={{ scale: 0.9, y: 20 }}
+//               className="bg-white rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+//             >
+//               <div className="p-6 space-y-4 text-center">
+//                 <div className="flex justify-center">
+//                   <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+//                     <Shield className="w-10 h-10 text-blue-600" />
+//                   </div>
+//                 </div>
+//                 <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm text-gray-600 leading-relaxed text-left">
+//                   <p className="font-semibold text-gray-800">Disclaimer</p>
+//                   <p>
+//                     The information and services provided on this platform are intended for general 
+//                     informational and facilitation purposes only and do not constitute legal, financial, 
+//                     or professional advice. All services are delivered in accordance with applicable 
+//                     laws and regulations, including but not limited to the Companies Act, 2013, 
+//                     Income-tax laws, GST laws, and other relevant statutes in India.
+//                   </p>
+//                   <p>
+//                     The applicability, process, documentation, timelines, and outcomes of any service 
+//                     may vary based on the user's specific facts, regulatory requirements, and 
+//                     jurisdiction. Users are advised to consult with a qualified professional before 
+//                     making any decision based on the information provided on this platform.
+//                   </p>
+//                 </div>
+//               </div>
+//               <div className="p-6 border-t border-gray-100">
+//                 <button
+//                   onClick={handleCloseDisclaimer}
+//                   className="w-full h-12 bg-blue-600 rounded-xl font-bold text-white hover:bg-blue-500 transition-colors"
+//                 >
+//                   Close
+//                 </button>
+//               </div>
+//             </motion.div>
+//           </motion.div>
+//         )}
+//       </AnimatePresence>
+
+//       {/* ===== MAIN CONTENT ===== */}
+//       <div className={clsx(
+//         "transition-opacity duration-300",
+//         showDisclaimer ? "opacity-50 pointer-events-none" : "opacity-100 pointer-events-auto"
+//       )}>
+//         {/* Header */}
+//         <div className="relative h-64 bg-gradient-to-br from-blue-600 to-purple-800 p-6 flex flex-col justify-between pt-6">
+//           <div className="flex items-center justify-between">
+//             <button onClick={() => navigate(-1)} className="p-2 bg-black/20 backdrop-blur-md rounded-full">
+//               <ArrowLeft className="w-6 h-6" />
+//             </button>
+//             <button onClick={() => navigate('/cart')} className="p-2 bg-black/20 backdrop-blur-md rounded-full relative">
+//               <ShoppingCart className="w-6 h-6" />
+//               {cart.length > 0 && (
+//                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+//                   {cart.length}
+//                 </span>
+//               )}
+//             </button>
+//           </div>
+          
+//           <div className="space-y-2">
+//             <div className="flex gap-2">
+//               {service.tags.map(tag => (
+//                 <span key={tag} className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-2 py-1 rounded-md backdrop-blur-md">
+//                   {tag}
+//                 </span>
+//               ))}
+//             </div>
+//             <h1 className="text-3xl font-black leading-tight">{service.title}</h1>
+//             <p className="text-white/60 text-sm font-medium uppercase tracking-wider">{service.category}</p>
+//           </div>
+//         </div>
+
+//         {/* Price Strip */}
+//         <div className="bg-white/5 border-y border-white/10 px-6 py-4 flex items-center justify-between">
+//           <div>
+//             <span className="text-white/40 text-xs uppercase font-bold tracking-widest">Service Fee</span>
+//             <div className="text-2xl font-black text-blue-400">₹{service.price}</div>
+//           </div>
+//           <div className="text-right">
+//             <span className="text-white/40 text-xs uppercase font-bold tracking-widest">Delivery</span>
+//             <div className="text-sm font-bold text-green-400">Fast Track</div>
+//           </div>
+//         </div>
+
+//         {/* Tabs */}
+//         <div className="px-6 mt-8">
+//           <div className="flex bg-white/5 p-1 rounded-2xl border border-white/10">
+//             <button
+//               onClick={() => setActiveTab('details')}
+//               className={clsx(
+//                 "flex-1 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2",
+//                 activeTab === 'details' ? "bg-white text-black shadow-lg" : "text-white/40"
+//               )}
+//             >
+//               <Info className="w-4 h-4" /> Details
+//             </button>
+//             <button
+//               onClick={() => setActiveTab('documents')}
+//               className={clsx(
+//                 "flex-1 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2",
+//                 activeTab === 'documents' ? "bg-white text-black shadow-lg" : "text-white/40"
+//               )}
+//             >
+//               <FileText className="w-4 h-4" /> Documents
+//             </button>
+//           </div>
+
+//           <div className="mt-8 space-y-8">
+//             {activeTab === 'details' ? (
+//               <motion.div
+//                 initial={{ opacity: 0, y: 10 }}
+//                 animate={{ opacity: 1, y: 0 }}
+//                 className="space-y-8"
+//               >
+//                 <section className="space-y-4">
+//                   <h3 className="text-lg font-bold flex items-center gap-2">
+//                     <ShieldCheck className="w-5 h-5 text-blue-400" /> Description
+//                   </h3>
+//                   <p className="text-white/60 leading-relaxed">{service.description}</p>
+//                 </section>
+
+//                 <AdBanner />
+
+//                 <section className="space-y-4">
+//                   <h3 className="text-lg font-bold flex items-center gap-2">
+//                     <CheckCircle2 className="w-5 h-5 text-green-400" /> Key Benefits
+//                   </h3>
+//                   <div className="grid gap-3">
+//                     {service.benefits.map((benefit, i) => (
+//                       <div key={i} className="flex items-start gap-3 p-4 bg-white/5 rounded-2xl border border-white/10">
+//                         <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center mt-0.5">
+//                           <CheckCircle2 className="w-3 h-3 text-green-400" />
+//                         </div>
+//                         <span className="text-sm font-medium text-white/80">{benefit}</span>
+//                       </div>
+//                     ))}
+//                   </div>
+//                 </section>
+//               </motion.div>
+//             ) : (
+//               <motion.div
+//                 initial={{ opacity: 0, y: 10 }}
+//                 animate={{ opacity: 1, y: 0 }}
+//                 className="space-y-6"
+//               >
+//                 <div className="bg-blue-600/10 p-6 rounded-3xl border border-blue-500/20">
+//                   <h3 className="text-lg font-bold mb-2">Required Checklist</h3>
+//                   <p className="text-white/60 text-xs">Please ensure you have clear digital copies of these documents.</p>
+//                 </div>
+//                 <div className="space-y-3">
+//                   {service.documentsRequired.map((doc, i) => (
+//                     <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+//                       <span className="text-sm font-medium">{doc}</span>
+//                       <div className="w-5 h-5 border-2 border-white/10 rounded-md" />
+//                     </div>
+//                   ))}
+//                 </div>
+//               </motion.div>
+//             )}
+//           </div>
+//         </div>
+
+//         {/* ===== STICKY BOTTOM ACTIONS WITH QUANTITY BADGE ON ADD TO CART ===== */}
+//         <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-0 right-0 p-6 bg-gradient-to-t from-black via-black/95 to-transparent z-40">
+//           <div className="flex gap-4">
+//             <button 
+//               onClick={handleAddToCart}
+//               className="flex-1 h-16 bg-white/5 border border-white/10 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-white/10 transition-colors relative"
+//             >
+//               <ShoppingCart className="w-5 h-5" /> 
+//               Add to Cart
+//               {quantityInCart > 0 && (
+//                 <span className="ml-1 bg-blue-600 text-white text-xs px-2.5 py-0.5 rounded-full font-bold">
+//                   {quantityInCart}
+//                 </span>
+//               )}
+//             </button>
+//             <button 
+//               onClick={handleBuyNow}
+//               className="flex-[1.5] h-16 bg-blue-600 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 shadow-2xl shadow-blue-600/20 hover:bg-blue-500 transition-colors"
+//             >
+//               <Zap className="w-5 h-5 fill-current" /> Buy Now
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { SERVICES } from '../data/services';
 import { 
   ArrowLeft, ShoppingCart, Zap, CheckCircle2, 
-  FileText, Info, ShieldCheck, Shield
+  FileText, Info, ShieldCheck, AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCart } from '../context/CartContext';
@@ -807,7 +1084,7 @@ export function ServiceDetail() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6"
+            className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
@@ -815,22 +1092,25 @@ export function ServiceDetail() {
               exit={{ scale: 0.9, y: 20 }}
               className="bg-white rounded-3xl max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl"
             >
-              <div className="p-6 space-y-4 text-center">
+              <div className="p-5 sm:p-6 space-y-4 text-center">
+                {/* Warning Icon */}
                 <div className="flex justify-center">
-                  <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Shield className="w-10 h-10 text-blue-600" />
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-yellow-100 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-8 h-8 sm:w-10 sm:h-10 text-yellow-600" />
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-sm text-gray-600 leading-relaxed text-left">
-                  <p className="font-semibold text-gray-800">Disclaimer</p>
-                  <p>
+
+                {/* Disclaimer Text - Mobile Optimized */}
+                <div className="bg-gray-50 rounded-xl p-4 space-y-2 text-left max-h-[40vh] overflow-y-auto">
+                  <p className="font-semibold text-gray-800 text-sm sm:text-base">Disclaimer</p>
+                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                     The information and services provided on this platform are intended for general 
                     informational and facilitation purposes only and do not constitute legal, financial, 
                     or professional advice. All services are delivered in accordance with applicable 
                     laws and regulations, including but not limited to the Companies Act, 2013, 
                     Income-tax laws, GST laws, and other relevant statutes in India.
                   </p>
-                  <p>
+                  <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
                     The applicability, process, documentation, timelines, and outcomes of any service 
                     may vary based on the user's specific facts, regulatory requirements, and 
                     jurisdiction. Users are advised to consult with a qualified professional before 
@@ -838,7 +1118,7 @@ export function ServiceDetail() {
                   </p>
                 </div>
               </div>
-              <div className="p-6 border-t border-gray-100">
+              <div className="p-5 sm:p-6 border-t border-gray-100">
                 <button
                   onClick={handleCloseDisclaimer}
                   className="w-full h-12 bg-blue-600 rounded-xl font-bold text-white hover:bg-blue-500 transition-colors"

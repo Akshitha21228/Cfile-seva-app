@@ -328,12 +328,12 @@ export default function Signup() {
           </form>
 
           {/* === TEST TOAST BUTTON (Remove later) === */}
-          <button
+          {/* <button
             onClick={() => showToast('✅ Test toast works!', 'success')}
             className="w-full h-10 bg-green-600/20 border border-green-500/30 rounded-xl text-sm font-bold hover:bg-green-600/30 transition-colors"
           >
             🔔 Test Toast
-          </button>
+          </button> */}
         </div>
 
         <p className="mt-6 text-white/50 text-sm">
